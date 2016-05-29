@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>WHO Disability Adjusted Life Years, by gender and cause, 2012 by willgilks</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>WHO Disability Adjusted Life Years, by gender and cause, 2012</h1>
+        <p>Data and R code for plotting data on Disability Adjusted Life Years from World Health Organisation</p>
+
+        <p class="view"><a href="https://github.com/willgilks/WHO_DALY_2012">View the Project on GitHub <small>willgilks/WHO_DALY_2012</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/willgilks/WHO_DALY_2012/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/willgilks/WHO_DALY_2012/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/willgilks/WHO_DALY_2012">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>This is my first effort at uploading a project to github so there may be some naive errors. I was interested in gender differences in disease and mortality in humans, and found a big data set from the World Health Organisation. The excel file containing the 'raw data' on Disability Adjusted Life-Years, is fairly complicated to read into R, so I reformatted and created a few more variables, prior to import. This is intended as an exploratory analysis. Original data obtained from <a href="http://www.who.int/healthinfo/global_burden_disease/estimates/en/index2.html">http://www.who.int/healthinfo/global_burden_disease/estimates/en/index2.html</a></p>
+
+<p>Several libraries are used:</p>
+
+<pre><code>require(dplyr)
+require(ggplot2)
+require(tidyr)
+require(gridExtra)
+require(cowplot)
+</code></pre>
+
+<p>A routine import of data in text (tab-delimited) format.</p>
+
+<pre><code>morta = read.table("who_mortality_2015.txt", header = T, sep = "\t")
+</code></pre>
+
+<p>Convert daly for each sex into millions and view:</p>
+
+<pre><code>                          id myclass  myid     male   female         age years   milmale milfemale
+1 Neonatal_sepsis_and_infections       B B-Inf 22129032 17494859   0-27 days  0.00 22.129032 17.494859
+2 Neonatal_sepsis_and_infections       B B-Inf 22129032 17494859   0-27 days  0.07 22.129032 17.494859
+3 Neonatal_sepsis_and_infections       B B-Inf     3332     3549 1-59 months  0.08  0.003332  0.003549
+4 Neonatal_sepsis_and_infections       B B-Inf     3332     3549 1-59 months  4.90  0.003332  0.003549
+5 Neonatal_sepsis_and_infections       B B-Inf      894    12022  5-14 years  5.00  0.000894  0.012022
+6 Neonatal_sepsis_and_infections       B B-Inf      894    12022  5-14 years 14.00  0.000894  0.012022
+</code></pre>
+
+<p>Use dplyr's select'n'gather to reformat data as 'long'. Various factor level manipulation is a bit of an issue.</p>
+
+<pre><code>b = morta %&gt;%
+    select (myid, milmale, milfemale, years, age) %&gt;%
+    gather (key = sex, value = daly, -c(myid, years, age))
+
+&gt; head(b)
+  myid years         age     sex      daly
+1 B-Inf  0.00   0-27 days milmale 22.129032
+2 B-Inf  0.07   0-27 days milmale 22.129032
+3 B-Inf  0.08 1-59 months milmale  0.003332
+4 B-Inf  4.90 1-59 months milmale  0.003332
+5 B-Inf  5.00  5-14 years milmale  0.000894
+6 B-Inf 14.00  5-14 years milmale  0.000894
+</code></pre>
+
+<p>Make a decent custom plot theme.</p>
+
+<pre><code>theme_f1 &lt;- function() {
+    theme_bw(base_size = 8) +
+      theme(
+        plot.margin = unit(c(.25, .5, .25, .25), "cm"),
+        strip.background = element_rect(fill = "white", colour="white"),
+        axis.line.y = element_line(size = .3, colour = "black"),
+        axis.line.x = element_line(size = .3, colour = "black")
+      ) 
+    }
+</code></pre>
+
+<p>And check that it's true</p>
+
+<pre><code>attr(theme_f1(), "complete")
+</code></pre>
+
+<p>Plot all causes of DALY throughout age as area graphs; group (and colour) the areas by sex; achieved generally by ggplot2 facet_wrap. Having a full label on each plot for each cause ('id') isn't really practical. The custom identifiers ('myid') work, but adding the Guide as a title isn't great. Note, the y-axis range differs between plots, and can be changed with scales = "fixed" (facet_wrap).</p>
+
+<pre><code>all.pheno.time = 
+    ggplot (b, aes(years, daly, group = sex, fill = sex)) +
+      geom_area(alpha = .5, position = "identity") +
+      facet_wrap("myid", scales="free_y") + 
+        theme_f1() +
+        labs(title = "Guide: B=Birth, C=Cardio, D=Digestive, G=Genetic, I=Infection, J=inJury, M=Metabolic,
+             N=Neurological, O=Oncology, P=Psychiatric, S=Sensory, U=Uro-genital, Z=other", size = 6) +
+        scale_y_continuous(name="Disability-adjusted life-years (millions)", labels = NULL) +
+        scale_x_continuous(name = "Age group (years)") +
+          theme(legend.position="none",
+                panel.grid.major.x = element_line(size = 0),
+                title = element_text(size = 5))
+</code></pre>
+
+<p>Plot DALY for <strong>selected</strong> phenotypes, age x sex x DALY. It is also possible to plot these as smoothed lines but I feel as though plain geom_line is truer to the data.</p>
+
+<pre><code>sel.pheno.plot =  
+    ggplot (c, aes(years, milcounts, group = sex, linetype = sex, colour = sex)) +
+      geom_line(size = 4, alpha = .3, linetype = 1) + 
+      geom_line(size = .5, alpha = .8, colour = "black") + 
+        facet_wrap("id", scales="free_y", labeller = mylabs) + 
+        scale_colour_discrete(name = "Legend", labels=c("Female", "Male")) +
+        scale_linetype_discrete(name = "Legend", labels = c("Female", "Male")) +
+        theme_f2() +
+        scale_y_continuous(name = "Disability-adjusted life years (millions)") +
+        scale_x_continuous(name = "Age group (years)") +
+        guides (colour = guide_legend(title = "Legend")) +
+          theme(legend.position = "bottom")
+</code></pre>
+
+<p>Scatter plots of male vs female DALY, grouped by age. Warning, points are paired/duplicated due to age/years.</p>
+
+<pre><code>scat.all.ages = 
+    ggplot(morta, aes(milmale, milfemale)) + 
+      geom_abline(intercept = 0, slope = 1, size=.5, linetype = 2, colour="black") +
+      geom_point(size=2, shape=21) +
+      geom_smooth(se=TRUE, size = 0) +
+        scale_x_continuous(name = "male DALY (x10^6)") +
+        scale_y_continuous(name = "female DALY (x10^6)") +
+        facet_wrap("age", nrow = 2) +
+        theme_f1() +
+          theme(legend.position="none")
+</code></pre>
+
+<p>Scatter plot of male vs female DALY for age to 15-29 only, points labelled with type.</p>
+
+<pre><code>scat.mid =
+    ggplot(filter(morta, years == 29.00), aes(milmale, milfemale, label = id)) + 
+    geom_abline(intercept = 0, slope = 1, size=.5, linetype = 2, colour = "black") +
+    geom_text(size = 2) +
+    geom_smooth(se = TRUE, size = 0) +
+      scale_x_continuous(name = "male DALY (x10^6)") +
+      scale_y_continuous(name = "female DALY (x10^6)") +
+      facet_wrap("age", nrow = 2) +
+      theme_f1() +
+        theme(legend.position = "none")
+</code></pre>
+
+<p>Combine four plots into one page. This requires the package 'gridExtra'.</p>
+
+<pre><code>all.plots = plot_grid(nrow = 2, 
+                    all.pheno.time, sel.pheno.plot, 
+                    scat.all.ages, scat.mid, 
+                    labels = "AUTO",  label_size = 12, scale = 1)
+</code></pre>
+
+<p>Save combined plots, using package cowplot.</p>
+
+<pre><code>save_plot("suppfig1_all_sexMortality.pdf", all.plots, base_height = 10)
+</code></pre>
+
+<p><a href="https://github.com/willgilks/WHO_DALY_2012/blob/master/suppfig1_all_sexMortality.pdf">https://github.com/willgilks/WHO_DALY_2012/blob/master/suppfig1_all_sexMortality.pdf</a></p>
+
+<pre><code>save_plot("fig1_sexMortality.pdf", sel.pheno.plot, base_height = 5)
+</code></pre>
+
+<p><a href="https://github.com/willgilks/WHO_DALY_2012/blob/master/fig1_sexMortality.pdf">https://github.com/willgilks/WHO_DALY_2012/blob/master/fig1_sexMortality.pdf</a></p>
+
+<p>Now, how do I display images here...</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/willgilks">willgilks</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
