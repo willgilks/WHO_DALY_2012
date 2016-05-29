@@ -211,6 +211,10 @@ Sys.time()
   
   save_plot("suppfig1_all_sexMortality.pdf", all.plots, base_height = 10)
   save_plot("fig1_sexMortality.pdf", sel.pheno.plot, base_height = 5)
+  
+  save_plot("suppfig1_all_sexMortality.png", all.plots, base_height = 10)
+  save_plot("fig1_sexMortality.png", sel.pheno.plot, base_height = 5)
+  
 
   
   
