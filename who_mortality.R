@@ -22,7 +22,7 @@ Sys.time()
 
 ## Load data
 
-  morta = read.table("who_mortality_2015.txt", header = T, sep = "\t")
+  morta = read.table("who_mortality_2012.txt", header = T, sep = "\t")
   head(morta)
 
     
