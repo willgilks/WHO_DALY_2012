@@ -32,20 +32,26 @@
 
 <p>The excel file downloaded from <a href="http://www.who.int/healthinfo/global_burden_disease/estimates/en/index2.html">http://www.who.int/healthinfo/global_burden_disease/estimates/en/index2.html</a> is fairly complex, and contains features that make it a bit complicated for me to read into R. In excel, I did some reformatting and created a few more variables, prior to import into R. </p>
 
-<p>I'm also interested in trying to get big data into good graphs, - and doing good, reproducible analyses - and using github - and teaching others (especially at Sussex). This is a first foray into the above.</p>
+<p>I'm also interested in trying to get big data into good graphs, - and doing good, reproducible analyses - and using github - and teaching others (especially at Sussex). This is my first experiment with github io pages, a demonstration of dplyr, ggplot, and a few related R packages (see below), and explanation of some of the R code.</p>
 
-<p>dplyr <a href="https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html">https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html</a> \
-ggplot2 <a href="http://docs.ggplot2.org/current/">http://docs.ggplot2.org/current/</a>
-tidyr <a href="https://cran.r-project.org/web/packages/tidyr/index.html">https://cran.r-project.org/web/packages/tidyr/index.html</a>
-gridExtra <a href="https://cran.r-project.org/web/packages/gridExtra/index.html">https://cran.r-project.org/web/packages/gridExtra/index.html</a>
-cowplot <a href="https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html">https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html</a></p>
+<p>R packages used are: </p>
 
-<p>A routine import of data in text (tab-delimited) format.</p>
+<p>dplyr <a href="https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html">https://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html</a></p>
+
+<p>ggplot2 <a href="http://docs.ggplot2.org/current/">http://docs.ggplot2.org/current/</a></p>
+
+<p>tidyr <a href="https://cran.r-project.org/web/packages/tidyr/index.html">https://cran.r-project.org/web/packages/tidyr/index.html</a></p>
+
+<p>gridExtra <a href="https://cran.r-project.org/web/packages/gridExtra/index.html">https://cran.r-project.org/web/packages/gridExtra/index.html</a></p>
+
+<p>cowplot <a href="https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html">https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html</a></p>
+
+<p>A routine import of data in text (tab-delimited) format:</p>
 
 <pre><code>morta = read.table("who_mortality_2015.txt", header = T, sep = "\t")
 </code></pre>
 
-<p>Convert daly for each sex into millions and view:</p>
+<p>Convert global DALY for each sex into millions and view:</p>
 
 <pre><code>                          id myclass  myid     male   female         age years   milmale milfemale
 1 Neonatal_sepsis_and_infections       B B-Inf 22129032 17494859   0-27 days  0.00 22.129032 17.494859
@@ -56,7 +62,7 @@ cowplot <a href="https://cran.r-project.org/web/packages/cowplot/vignettes/intro
 6 Neonatal_sepsis_and_infections       B B-Inf      894    12022  5-14 years 14.00  0.000894  0.012022
 </code></pre>
 
-<p>Use dplyr's select'n'gather to reformat data as 'long'. Various factor level manipulation is a bit of an issue.</p>
+<p>Use dplyr's select'n'gather functions to reformat the data as 'long':</p>
 
 <pre><code>b = morta %&gt;%
     select (myid, milmale, milfemale, years, age) %&gt;%
@@ -72,7 +78,9 @@ cowplot <a href="https://cran.r-project.org/web/packages/cowplot/vignettes/intro
 6 B-Inf 14.00  5-14 years milmale  0.000894
 </code></pre>
 
-<p>Make a decent custom plot theme.</p>
+<p>The factor level manipulations (not shown here) are not elegant, and could probably be improved somehow.</p>
+
+<p>Make a decent custom plot theme (because native ggplot themes are not great):</p>
 
 <pre><code>theme_f1 &lt;- function() {
     theme_bw(base_size = 8) +
@@ -85,7 +93,7 @@ cowplot <a href="https://cran.r-project.org/web/packages/cowplot/vignettes/intro
     }
 </code></pre>
 
-<p>And check that it's true</p>
+<p>Use this command to check that the custom theme is complete (Should return 'true'):</p>
 
 <pre><code>attr(theme_f1(), "complete")
 </code></pre>
@@ -164,12 +172,12 @@ cowplot <a href="https://cran.r-project.org/web/packages/cowplot/vignettes/intro
 save_plot("fig1_sexMortality.pdf", sel.pheno.plot, base_height = 5)
 </code></pre>
 
-<p>Now, how do I display images here ??? maybe using png instead of pdf in github dir works.</p>
+<p>Now, how do I display images here ??? Here are the links anyway:</p>
 
 <p><a href="https://github.com/willgilks/WHO_DALY_2012/blob/master/fig1_sexMortality.png">https://github.com/willgilks/WHO_DALY_2012/blob/master/fig1_sexMortality.png</a>
 <a href="https://github.com/willgilks/WHO_DALY_2012/blob/master/suppfig1_all_sexMortality.png">https://github.com/willgilks/WHO_DALY_2012/blob/master/suppfig1_all_sexMortality.png</a></p>
 
-<p>There ends my first github io page  </p>
+<p>There ends my first github io page.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/willgilks">willgilks</a></p>
